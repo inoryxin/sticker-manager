@@ -1,0 +1,13 @@
+{
+  "name": "sticker-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "表情包管家 - 零依赖的表情包管理网站（上传/下载/标签/分类/搜索/删除）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

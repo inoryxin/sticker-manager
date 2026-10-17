@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>祈歆表情包</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%98%9C%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 侧栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <h1>😜 祈歆表情包</h1>
+    </div>
+
+    <div class="search-box">
+      <input type="search" id="searchInput" placeholder="搜索名称 / 标签 / 分类…" autocomplete="off">
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="btn btn-primary btn-block admin-only" id="uploadBtn">⬆ 上传表情包</button>
+      <button class="btn btn-block" id="randomBtn">🎲 随机一个</button>
+    </div>
+
+    <div class="sort-row">
+      <select id="sortSelect" aria-label="排序">
+        <option value="newest">最新上传</option>
+        <option value="oldest">最早上传</option>
+        <option value="name">按名称</option>
+        <option value="size">按大小</option>
+      </select>
+    </div>
+
+    <nav class="filters">
+      <div class="filter-group">
+        <div class="filter-title">分类</div>
+        <ul id="categoryList" class="cat-list"></ul>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">
+          标签
+          <button class="link-btn" id="clearTags" hidden>清除</button>
+        </div>
+        <div id="tagList" class="tag-list"></div>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="stats" id="stats"></div>
+      <div class="readonly-badge" id="readonlyBadge" hidden>👀 只读模式 · 仅可浏览和下载</div>
+      <button class="link-btn admin-only" id="exportBtn">⬇ 导出数据备份</button>
+      <button class="link-btn" id="loginBtn" hidden>🔒 管理员登录</button>
+      <button class="link-btn" id="logoutBtn" hidden>🔓 退出管理</button>
+    </div>
+  </aside>
+
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- 主区 -->
+  <main class="main">
+    <div class="toolbar">
+      <button class="icon-btn" id="menuBtn" title="菜单">☰</button>
+      <div class="toolbar-title" id="toolbarTitle">全部表情包</div>
+      <div class="toolbar-actions">
+        <button class="btn admin-only" id="selectBtn">☑ 选择</button>
+        <button class="btn btn-primary admin-only" id="mobileUploadBtn">⬆ 上传</button>
+      </div>
+    </div>
+
+    <div class="batch-bar" id="batchBar" hidden>
+      <span id="selectedCount">已选 0 项</span>
+      <div class="batch-actions">
+        <button class="btn btn-sm" id="batchTagBtn">打标签</button>
+        <button class="btn btn-sm" id="batchCategoryBtn">分类</button>
+        <button class="btn btn-sm btn-danger" id="batchDeleteBtn">删除</button>
+        <button class="btn btn-sm" id="cancelSelectBtn">取消</button>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="empty" id="empty" hidden>
+      <div class="empty-icon">🖼️</div>
+      <div class="empty-title">还没有表情包</div>
+      <div class="empty-desc">点击上方「上传表情包」，或直接把图片拖进来 / 粘贴（Ctrl+V）</div>
+    </div>
+  </main>
+
+  <!-- 上传弹窗 -->
+  <div class="modal" id="uploadModal" hidden>
+    <div class="modal-backdrop" data-close="upload"></div>
+    <div class="modal-card modal-wide">
+      <div class="modal-head">
+        <h2>上传表情包</h2>
+        <button class="modal-close" data-close="upload">✕</button>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <div class="dz-inner">
+          <div class="dz-icon">📁</div>
+          <div>点击选择 或 拖拽图片到这里</div>
+          <small>支持 GIF / PNG / JPG / WebP / AVIF / BMP / SVG，可多选</small>
+        </div>
+      </div>
+      <input type="file" id="fileInput" multiple accept="image/*,.gif,.webp,.svg,.bmp,.avif" hidden>
+      <div class="apply-all">
+        <input id="applyCategory" list="categoryDatalist" placeholder="统一分类（可选）" autocomplete="off">
+        <input id="applyTags" placeholder="统一标签，逗号分隔（可选）" autocomplete="off">
+      </div>
+      <div class="upload-list" id="uploadList"></div>
+      <div class="modal-foot">
+        <span id="uploadCount" class="muted">0 个文件</span>
+        <div>
+          <button class="btn" data-close="upload">取消</button>
+          <button class="btn btn-primary" id="doUpload">上传</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理员登录弹窗 -->
+  <div class="modal" id="loginModal" hidden>
+    <div class="modal-backdrop" data-close="login"></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>管理员登录</h2>
+        <button class="modal-close" data-close="login">✕</button>
+      </div>
+      <div class="batch-body">
+        <label for="loginPassword">密码</label>
+        <div class="row">
+          <input id="loginPassword" type="password" placeholder="请输入管理员密码" autocomplete="current-password">
+          <button class="btn btn-primary" id="loginSubmit">登录</button>
+        </div>
+        <div class="muted" style="margin-top:10px;line-height:1.6">
+          登录后才能上传、打标签、改分类和删除。其他人打开本页面只能浏览和下载。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 详情 / 预览弹窗 -->
+  <div class="modal" id="detailModal" hidden>
+    <div class="modal-backdrop" data-close="detail"></div>
+    <div class="detail-card">
+      <button class="modal-close" data-close="detail">✕</button>
+      <button class="nav-arrow prev" id="detailPrev" title="上一个">‹</button>
+      <button class="nav-arrow next" id="detailNext" title="下一个">›</button>
+      <div class="detail-img-wrap">
+        <img id="detailImg" alt="预览">
+      </div>
+      <div class="detail-side">
+        <label for="detailName">名称</label>
+        <input id="detailName" autocomplete="off">
+
+        <label for="detailCategory">分类</label>
+        <input id="detailCategory" list="categoryDatalist" autocomplete="off">
+
+        <label>标签 <span class="muted">（点击标签可移除）</span></label>
+        <div class="tag-chips" id="detailTags"></div>
+        <input id="detailTagInput" list="tagDatalist" placeholder="输入标签，回车 / 逗号添加" autocomplete="off">
+
+        <div class="detail-actions">
+          <button class="btn" id="detailDownload">⬇ 下载</button>
+          <button class="btn" id="detailCopy">📋 复制</button>
+          <button class="btn btn-danger" id="detailDelete">🗑 删除</button>
+        </div>
+        <div class="detail-meta muted" id="detailMeta"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 批量操作弹窗 -->
+  <div class="modal" id="batchModal" hidden>
+    <div class="modal-backdrop" data-close="batch"></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>批量操作</h2>
+        <button class="modal-close" data-close="batch">✕</button>
+      </div>
+      <div class="batch-body">
+        <label for="batchAddTags">添加标签（逗号分隔）</label>
+        <div class="row">
+          <input id="batchAddTags" placeholder="例如：可爱, 猫">
+          <button class="btn" id="batchAddTagsBtn">添加</button>
+        </div>
+        <label for="batchCategory">设置分类</label>
+        <div class="row">
+          <input id="batchCategory" list="categoryDatalist" placeholder="例如：日常">
+          <button class="btn" id="batchCategoryBtn">设置</button>
+        </div>
+        <button class="btn btn-danger btn-block" id="batchDeleteBtn2">🗑 删除所选</button>
+      </div>
+    </div>
+  </div>
+
+  <datalist id="categoryDatalist"></datalist>
+  <datalist id="tagDatalist"></datalist>
+
+  <div class="drag-overlay" id="dragOverlay">
+    <div class="drag-overlay-inner">🖼️ 松手即可添加图片</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

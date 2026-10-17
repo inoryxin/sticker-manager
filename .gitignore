@@ -1,0 +1,11 @@
+# 数据
+stickers/
+data.json
+data/
+
+# 依赖
+node_modules/
+
+# 系统
+.DS_Store
+Thumbs.db
